@@ -18,12 +18,14 @@ counts <- data %>%
     summarize(count = n()) %>%
     arrange(desc(count))
 
-ggplot(filter(counts, count > 1), aes(x = license_plate, y = count)) +
-    geom_col() +
-    coord_flip() +
-    labs(title = 'Wiederholungstäter',
-         x = 'Kennzeichen',
-         y = 'Anzahl Anzeigen')
+#ggplot(filter(counts, count > 1), aes(x = license_plate, y = count)) +
+#    geom_col() +
+#    coord_flip() +
+#    labs(title = 'Wiederholungstäter',
+#         x = 'Kennzeichen',
+#         y = 'Anzahl Anzeigen')
+
+png('plot-%d.png', res = 300, width = 7, height = 7, units = 'in')
 
 ggplot(data, aes(x = city)) +
     geom_bar() +
@@ -49,3 +51,5 @@ ggplot(meta_counts, aes(x = count, y = meta_count)) +
     labs(title = 'Wie häufig sind Wiederholungstäter?',
          x = 'Anzahl Anzeigen für festes Nummernschild',
          y = 'Häufigkeit')
+
+dev.off()
