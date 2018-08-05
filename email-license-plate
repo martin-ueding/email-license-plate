@@ -4,11 +4,11 @@
 # Copyright © 2018 Martin Ueding <dev@martin-ueding.de>
 
 import argparse
-import csv
 import mailbox
 import re
 
-import dateutil
+import dateutil.parser
+import pandas as pd
 
 
 def get_body(message):
@@ -35,27 +35,39 @@ def main():
     license_plate_pattern = re.compile(options.license_plate_pattern)
     date_pattern = re.compile(options.date_pattern)
 
+    events = []
+
     for path in options.path:
+        print('Parsing', path, '…')
         mbox = mailbox.mbox(path)
         
         for message in mbox:
             if message['Subject'] == options.subject:
                 text = get_body(message).decode()
 
-                #print(text)
-
                 m = license_plate_pattern.search(text, re.M)
-                print(m)
                 if not m:
                     continue
                 license_plate = m.group(1)
-                print('#', license_plate)
 
                 m = date_pattern.search(text, re.M)
                 if not m:
                     continue
-                date = dateutil.parser.parse(m.group(1))
-                print('#', date)
+                try:
+                    date = dateutil.parser.parse(m.group(1))
+                except ValueError:
+                    print('Could not parse:', m.group(1))
+                    continue
+
+                events.append(dict(license_plate=license_plate,
+                                   date=date))
+
+                print(' ', license_plate)
+
+    df = pd.DataFrame(events)
+    print(df)
+
+    df.to_csv(options.output_path)
 
 
 def _parse_args():
@@ -76,7 +88,10 @@ def _parse_args():
         default=r'Kennzeichen: (\w+ \w+\d+)')
     parser.add_argument(
         '--date-pattern',
-        default=r'^Datum, Uhrzeit: (.+)$')
+        default=r'Datum, Uhrzeit: (.+)')
+    parser.add_argument(
+        '--output-path',
+        default='license_plates.csv')
 
     options = parser.parse_args()
 
