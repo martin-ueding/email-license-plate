@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Copyright © 2018 Martin Ueding <dev@martin-ueding.de>
+
+import argparse
+import csv
+import mailbox
+import re
+
+import dateutil
+
+
+def get_body(message):
+    '''
+    https://stackoverflow.com/a/31489271/653152
+    '''
+    body = None
+    if message.is_multipart():
+        for part in message.walk():
+            if part.is_multipart():
+                for subpart in part.walk():
+                    if subpart.get_content_type() == 'text/plain':
+                        body = subpart.get_payload(decode = True)
+            elif part.get_content_type() == 'text/plain':
+                body = part.get_payload(decode = True)
+    elif message.get_content_type() == 'text/plain':
+        body = message.get_payload(decode = True)
+    return body
+
+
+def main():
+    options = _parse_args()
+
+    license_plate_pattern = re.compile(options.license_plate_pattern)
+    date_pattern = re.compile(options.date_pattern)
+
+    for path in options.path:
+        mbox = mailbox.mbox(path)
+        
+        for message in mbox:
+            if message['Subject'] == options.subject:
+                text = get_body(message).decode()
+
+                #print(text)
+
+                m = license_plate_pattern.search(text, re.M)
+                print(m)
+                if not m:
+                    continue
+                license_plate = m.group(1)
+                print('#', license_plate)
+
+                m = date_pattern.search(text, re.M)
+                if not m:
+                    continue
+                date = dateutil.parser.parse(m.group(1))
+                print('#', date)
+
+
+def _parse_args():
+    '''
+    Parses the command line arguments.
+
+    :return: Namespace with arguments.
+    :rtype: Namespace
+    '''
+    parser = argparse.ArgumentParser(description='')
+
+    parser.add_argument('path', nargs='+')
+    parser.add_argument(
+        '--subject',
+        default='Anzeige einer Verkehrsordnungswidrigkeit')
+    parser.add_argument(
+        '--license-plate-pattern',
+        default=r'^Kennzeichen: (\w+ \w+\d+)$')
+    parser.add_argument(
+        '--date-pattern',
+        default=r'^Datum, Uhrzeit: (.+)$')
+
+    options = parser.parse_args()
+
+    return options
+
+
+if __name__ == '__main__':
+    main()
