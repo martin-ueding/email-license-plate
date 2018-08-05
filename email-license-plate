@@ -11,6 +11,25 @@ import dateutil.parser
 import pandas as pd
 
 
+class GermanParserInfo(dateutil.parser.parserinfo):
+    '''
+    https://stackoverflow.com/a/37485484/653152
+    '''
+    MONTHS = [("Jan.", "Januar"),
+              ("Feb.", "Februar"),
+              ("Mar.", "März"),
+              ("Apr.", "April"),
+              ("Mai.", "Mai"),
+              ("Jun.", "Juni"),
+              ("Jul.", "Juli"),
+              ("Aug.", "August"),
+              ("Sep.", "September"),
+              ("Okt.", "Oktober"),
+              ("Nov.", "November"),
+              ("Dez.", "Dezember"),
+             ]
+
+
 def get_body(message):
     '''
     https://stackoverflow.com/a/31489271/653152
@@ -35,6 +54,8 @@ def main():
     license_plate_pattern = re.compile(options.license_plate_pattern)
     date_pattern = re.compile(options.date_pattern)
 
+    parser_info = GermanParserInfo()
+
     events = []
 
     for path in options.path:
@@ -54,7 +75,10 @@ def main():
                 if not m:
                     continue
                 try:
-                    date = dateutil.parser.parse(m.group(1))
+                    date = dateutil.parser.parse(
+                        m.group(1),
+                        parserinfo=parser_info,
+                    )
                 except ValueError:
                     print('Could not parse:', m.group(1))
                     continue
