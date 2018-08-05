@@ -73,7 +73,7 @@ def _parse_args():
         default='Anzeige einer Verkehrsordnungswidrigkeit')
     parser.add_argument(
         '--license-plate-pattern',
-        default=r'^Kennzeichen: (\w+ \w+\d+)$')
+        default=r'Kennzeichen: (\w+ \w+\d+)')
     parser.add_argument(
         '--date-pattern',
         default=r'^Datum, Uhrzeit: (.+)$')
