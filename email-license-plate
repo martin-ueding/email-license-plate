@@ -53,6 +53,8 @@ def main():
 
     license_plate_pattern = re.compile(options.license_plate_pattern)
     date_pattern = re.compile(options.date_pattern)
+    location_pattern = re.compile(options.location_pattern)
+    infraction_pattern = re.compile(options.infraction_pattern)
 
     parser_info = GermanParserInfo()
 
@@ -71,6 +73,16 @@ def main():
                     continue
                 license_plate = m.group(1)
 
+                m = location_pattern.search(text, re.M)
+                if not m:
+                    continue
+                location = m.group(1)
+
+                m = infraction_pattern.search(text, re.M)
+                if not m:
+                    continue
+                infraction = m.group(1)
+
                 m = date_pattern.search(text, re.M)
                 if not m:
                     continue
@@ -84,7 +96,9 @@ def main():
                     continue
 
                 events.append(dict(license_plate=license_plate,
-                                   date=date))
+                                   date=date,
+                                   location=location,
+                                   infraction=infraction))
 
                 print(' ', license_plate)
 
@@ -113,6 +127,12 @@ def _parse_args():
     parser.add_argument(
         '--date-pattern',
         default=r'Datum, Uhrzeit: (.+)')
+    parser.add_argument(
+        '--location-pattern',
+        default=r'Ort: (.+)')
+    parser.add_argument(
+        '--infraction-pattern',
+        default=r'Verkehrsordnungswidrigkeit: (.+)')
     parser.add_argument(
         '--output-path',
         default='license_plates.csv')
