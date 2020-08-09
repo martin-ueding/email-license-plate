@@ -1,0 +1,43 @@
+---
+title: "Bearbeitung von Anzeigen"
+author: "Martin Ueding"
+date: "8 8 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+```
+
+```{r}
+meine <- read.csv('license_plates.csv') %>%
+  select(-1) %>%
+  distinct() %>%
+  filter(nchar(date) > 0)
+meine$date <- as.POSIXct(meine$date)
+```
+
+```{r}
+stadt <- read.csv('Parkverstoesse2018.csv', sep = ';')
+stadt$date <- as.POSIXct(paste(stadt$TATTAG, sprintf('%04d', stadt$TATZEIT)), format = '%d.%m.%Y %H%M')
+```
+
+```{r}
+inner_join(meine, stadt, by = c('date')) %>%
+  distinct() %>%
+  select(date, location, TATORT, infraction, TATBESTANDBE_TBNR)
+```
+
+```{r}
+anti_join(meine, stadt, by = c('date')) %>%
+  select(-1)
+```
+
+```{r}
+filter(stadt,
+       TATTAG == '29.01.2018',
+       1830 < TATZEIT & TATZEIT < 18:40)
+```
+
